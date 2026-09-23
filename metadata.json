@@ -1,0 +1,8 @@
+{
+  "name": "AFTERWORK - Restaurant POS V.6",
+  "description": "ระบบจัดการร้านอาหาร คลังเมนู ครัว POS และวิเคราะห์บัญชีผลประกอบการแบบเรียลไทม์ เชื่อมต่อ Firebase และป้องกันเมนูซ้ำซ้อน",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
