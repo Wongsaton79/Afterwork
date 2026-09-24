@@ -76,3 +76,9 @@ export const deleteExpense = async (expenseId: string): Promise<void> => {
   await ensureAuth();
   await deleteDoc(doc(db, ...PATH_EXPENSES, expenseId));
 };
+
+export const updateExpenseCategory = async (expenseId: string, category: string): Promise<void> => {
+  await ensureAuth();
+  const docRef = doc(db, ...PATH_EXPENSES, expenseId);
+  await updateDoc(docRef, { category });
+};

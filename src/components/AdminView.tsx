@@ -11,6 +11,8 @@ import { addExpense, markExpensePaid, deleteExpense } from '../lib/expenseServic
 import { deleteOrder, updateOrderStatus } from '../lib/orderService';
 import { DeduplicatePanel } from './DeduplicatePanel';
 import { TableQrModal } from './TableQrModal';
+import { ExpenseManagementView } from './ExpenseManagementView';
+import { PRESET_EXPENSE_CATEGORIES, guessCategoryFromTitle } from '../lib/expenseAnalysisService';
 import { 
   Chart as ChartJS, 
   CategoryScale, 
@@ -21,9 +23,10 @@ import {
   Title, 
   Tooltip, 
   Legend, 
-  Filler 
+  Filler,
+  ArcElement
 } from 'chart.js';
-import { Bar, Line } from 'react-chartjs-2';
+import { Bar, Line, Pie } from 'react-chartjs-2';
 import { 
   LayoutDashboard, 
   Utensils, 
@@ -47,7 +50,10 @@ import {
   ToggleRight,
   ShieldCheck,
   ChevronRight,
-  QrCode
+  QrCode,
+  PieChart,
+  ShoppingBag,
+  Lightbulb
 } from 'lucide-react';
 
 ChartJS.register(
@@ -59,7 +65,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  ArcElement
 );
 
 interface AdminViewProps {
@@ -300,14 +307,16 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
     setIsAddingExp(true);
     try {
+      const finalCat = expCategory || guessCategoryFromTitle(expTitle);
       await addExpense({
         title: expTitle.trim(),
         amount: Number(expAmount),
-        category: expCategory,
+        category: finalCat,
         status: expStatus
       });
       setExpTitle('');
       setExpAmount('');
+      setExpCategory(PRESET_EXPENSE_CATEGORIES[0]);
     } catch (err) {
       console.error(err);
     } finally {
@@ -357,6 +366,18 @@ export const AdminView: React.FC<AdminViewProps> = ({
           >
             <Utensils className="w-3.5 h-3.5" />
             <span>จัดการเมนู ({menus.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('expenses')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
+              activeTab === 'expenses'
+                ? 'bg-white text-orange-600 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <PieChart className="w-3.5 h-3.5 text-orange-500" />
+            <span>วิเคราะห์รายจ่าย & วัตถุดิบ</span>
           </button>
 
           <button
@@ -608,7 +629,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <div>
                         <label className="block text-xs font-bold text-slate-500 mb-1">จำนวนเงิน (฿)</label>
                         <input
@@ -616,9 +637,22 @@ export const AdminView: React.FC<AdminViewProps> = ({
                           placeholder="0"
                           value={expAmount}
                           onChange={(e) => setExpAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                          className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold"
                           required
                         />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1">หมวดหมู่</label>
+                        <select
+                          value={expCategory}
+                          onChange={(e) => setExpCategory(e.target.value)}
+                          className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-semibold"
+                        >
+                          {PRESET_EXPENSE_CATEGORIES.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
                       </div>
 
                       <div>
@@ -626,7 +660,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                         <select
                           value={expStatus}
                           onChange={(e) => setExpStatus(e.target.value as any)}
-                          className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-semibold"
                         >
                           <option value="paid">จ่ายแล้ว</option>
                           <option value="pending">ค้างชำระ</option>
@@ -647,8 +681,17 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 {/* Expense List */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
                   <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold text-base text-slate-900">ประวัติรายการรายจ่าย</h4>
-                    <span className="text-xs text-slate-500">{filteredExpenses.length} รายการ</span>
+                    <div>
+                      <h4 className="font-bold text-base text-slate-900">ประวัติรายการรายจ่าย</h4>
+                      <span className="text-xs text-slate-500">{filteredExpenses.length} รายการ</span>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('expenses')}
+                      className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 transition cursor-pointer"
+                    >
+                      <PieChart className="w-3.5 h-3.5" />
+                      <span>วิเคราะห์เชิงลึก & แนวโน้มสั่งของ ➔</span>
+                    </button>
                   </div>
 
                   <div className="overflow-y-auto max-h-64 divide-y divide-slate-100">
@@ -921,6 +964,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
               duplicateGroups={duplicateGroups}
               totalRawCount={rawMenus.length}
               uniqueCount={menus.length}
+            />
+          )}
+
+          {/* TAB 5: EXPENSE ANALYSIS & FORECAST (Addresses User Request) */}
+          {activeTab === 'expenses' && (
+            <ExpenseManagementView
+              expenses={expenses}
+              orders={orders}
+              menus={menus}
             />
           )}
 

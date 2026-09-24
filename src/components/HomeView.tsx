@@ -222,7 +222,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-1.5">จัดการร้าน & บัญชี</h3>
               <p className="text-slate-500 text-xs leading-relaxed">
-                กราฟยอดขาย กำไรสุทธิ บันทึกรายจ่าย และเครื่องมือจัดการข้อมูล
+                กราฟยอดขาย บันทึกรายจ่าย วิเคราะห์การซื้อของสด (หมู/กุ้ง) และคำนวณกำไรสุทธิ
               </p>
             </div>
             <div className="mt-6 flex items-center gap-2 text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
